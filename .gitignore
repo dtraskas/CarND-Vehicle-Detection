@@ -1,0 +1,5 @@
+.vscode/*
+__pycache__/*
+training_data/*
+project_output.mp4
+test_output.mp4
