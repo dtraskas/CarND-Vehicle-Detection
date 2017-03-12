@@ -2,9 +2,10 @@
 
 In order to implement a vehicle detection pipeline from a video stream the following steps have to be followed:
 
-* Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
+* Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images.
 * Apply a color transform and append binned color features, as well as histograms of color, to the HOG feature vector. 
 * Normalize the image features and shuffle the data for training and testing.
+* Train an SVM classifier
 * Use a sliding-window technique and the trained classifier to search for vehicles in images.
 * Run a detection pipeline on the video stream and generate a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
 * Estimate a bounding box for vehicles detected.
