@@ -30,8 +30,13 @@ def get_examples(veh_paths, nonveh_paths):
         for image in images:
             non_vehicles.append(image)
     
-    veh = mpimg.imread(np.random.choice(vehicles))
-    non_veh = mpimg.imread(np.random.choice(non_vehicles))
+    veh = []
+    for cnt in range(2):
+        veh.append(mpimg.imread(np.random.choice(vehicles)))
+    
+    non_veh = []
+    for cnt in range(2):
+        non_veh.append(mpimg.imread(np.random.choice(non_vehicles)))
 
     return veh, non_veh
 
@@ -40,33 +45,86 @@ def gen_one():
 
     fig = plt.figure()
     plt.subplot(121)
-    plt.imshow(veh)
+    plt.imshow(veh[0])
     plt.title('Vehicle')
     plt.subplot(122)
-    plt.imshow(non_veh)
+    plt.imshow(non_veh[1])
     plt.title('Non Vehicle')    
     plt.show()
     fig.savefig("output_images/vehicle_not_vehicle.png")
 
 def gen_two():
-    veh, _ = get_examples(['training_data/vehicles/GTI_Far/*.png'], ['training_data/non-vehicles/Extras/*.png'])    
+    veh_images, nonveh_images = get_examples(['training_data/vehicles/GTI_Far/*.png'], ['training_data/non-vehicles/Extras/*.png'])    
     
-    feature_image = cv2.cvtColor(veh, cv2.COLOR_RGB2YUV)   
-    features, hog_image = hog(feature_image[:,:,0], orientations=9, 
+    fig, axes = plt.subplots(4,7,figsize=(10,10))
+    fig.subplots_adjust(hspace=0.3, wspace=0.1)
+    for cnt in range(len(veh_images)):
+        veh = veh_images[cnt]
+        feature_veh = cv2.cvtColor(veh, cv2.COLOR_RGB2YUV)   
+
+        axes[cnt,0].imshow(veh)    
+        title = "veh-{0}".format(cnt)
+        axes[cnt,0].set_title(title, fontsize = 14)
+        axes[cnt,0].set_xticks([])
+        axes[cnt,0].set_yticks([]) 
+
+        for channel in range(3):    
+            axes[cnt,channel+1].imshow(veh[:,:,channel],cmap='gray')
+            title = "ch-{0}".format(channel)
+            axes[cnt,channel+1].set_title(title, fontsize = 14)
+            axes[cnt,channel+1].set_xticks([])
+            axes[cnt,channel+1].set_yticks([]) 
+
+        for channel in range(3):    
+            feature_image = cv2.cvtColor(veh, cv2.COLOR_RGB2YCrCb)   
+            features, hog_image = hog(feature_image[:,:,channel], orientations=9, 
                                      pixels_per_cell=(8, 8),
                                      cells_per_block=(2, 2), 
                                      transform_sqrt=False, 
                                      visualise=True, feature_vector=True)
 
-    fig = plt.figure()
-    plt.subplot(121)
-    plt.imshow(veh)
-    plt.title('Vehicle')
-    plt.subplot(122)
-    plt.imshow(hog_image, cmap='gray')
-    plt.title('HOG Features')    
+            axes[cnt,channel+4].imshow(hog_image,cmap='gray')
+            title = "HOG ch-{0}".format(channel)
+            axes[cnt,channel+4].set_title(title, fontsize = 14)
+            axes[cnt,channel+4].set_xticks([])
+            axes[cnt,channel+4].set_yticks([]) 
+    
+    index = 0
+    for cnt in range(2,4):
+        nonveh = nonveh_images[index]
+        index += 1
+        feature_veh = cv2.cvtColor(nonveh, cv2.COLOR_RGB2YUV)   
+
+        axes[cnt,0].imshow(nonveh)    
+        title = "nonveh-{0}".format(cnt)
+        axes[cnt,0].set_title(title, fontsize = 14)
+        axes[cnt,0].set_xticks([])
+        axes[cnt,0].set_yticks([]) 
+
+        for channel in range(3):    
+            axes[cnt,channel+1].imshow(nonveh[:,:,channel],cmap='gray')
+            title = "ch-{0}".format(channel)
+            axes[cnt,channel+1].set_title(title, fontsize = 14)
+            axes[cnt,channel+1].set_xticks([])
+            axes[cnt,channel+1].set_yticks([]) 
+
+        for channel in range(3):    
+            feature_image = cv2.cvtColor(nonveh, cv2.COLOR_RGB2YCrCb)   
+            features, hog_image = hog(feature_image[:,:,channel], orientations=9, 
+                                     pixels_per_cell=(8, 8),
+                                     cells_per_block=(2, 2), 
+                                     transform_sqrt=False, 
+                                     visualise=True, feature_vector=True)
+
+            axes[cnt,channel+4].imshow(hog_image,cmap='gray')
+            title = "HOG ch-{0}".format(channel)
+            axes[cnt,channel+4].set_title(title, fontsize = 14)
+            axes[cnt,channel+4].set_xticks([])
+            axes[cnt,channel+4].set_yticks([]) 
+
     plt.show()
     fig.savefig("output_images/HOG_example.png")
+
 
 def gen_three():
     cspace='YUV'
@@ -158,4 +216,4 @@ def gen_three():
     
 if __name__ == '__main__':
 
-    gen_three()
+    gen_two()
