@@ -26,7 +26,7 @@ In order to train a classifier that detects vehicles from a video stream I utili
 
 ![alt text][image1]
 
-I explored a number of different color spaces such as `RGB`, `HLS`, `HSV` and `YCrCb` and HOG parameters. In the end I ended up using the `YUV` color space, `orientation=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)` which are set at the beginning of my processing pipeline in `pipeliny.py`. For the HOG function I converted the original image to the `YCrCb` color space which was used only for this part of the feature extraction process. The HOG parameters were determined after a lot of experimentation with the entire pipeline and the SVM classifier.
+I explored a number of different color spaces such as `RGB`, `HLS`, `YUV` and `YCrCb` and HOG parameters. In the end I ended up using the `YUV` color space, `orientation=9`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)` which are set at the beginning of my processing pipeline in `pipeliny.py`. For the HOG function I converted the original image to the `YCrCb` color space which was used only for this part of the feature extraction process. The HOG parameters were determined after a lot of experimentation with the entire pipeline and the SVM classifier.
 
 You can see an example output of the HOG function below:
 
@@ -54,23 +54,23 @@ The window sizes and an example image can be seen below:
 
 The function of `search_multiple_scales()` is to detect windows with vehicles. It does that by passing every single scale window to the SVM classifier which returns positive windows that contain a vehicle. The resulting windows are then used to create a heatmap. 
 
-Below are example images of the pipeline process and window detection:
+Below is an example image of the pipeline process and window detection:
 
 ![alt text][image4]
 
 ##Video Implementation
 
-Once windows with vehicles and potentially some false positives are detected a heatmap is generated. Using a low threshold any false positives are removed and with the `scipy.ndimage.measurements.label()` function individual blobs are identified in the heatamp that are essentially vehicles. A bounding box is constructed to cover the area of each detected blob and highlighted in the video. 
+Once windows with vehicles and potentially some false positives are detected a heatmap is generated. Using a low threshold any false positives are removed and with the `scipy.ndimage.measurements.label()` function individual blobs are identified in the heatmap that are essentially vehicles. A bounding box is constructed to cover the area of each detected blob and highlighted in the video. 
 
 Below you can see 6 frame examples and their corresponding heatmaps:
 
 ![alt text][image5]
 
-Here is an output of the `scipy.ndimage.measurements.label()` on the integrated heatmap from a single frame:
+Here is an output of the `scipy.ndimage.measurements.label()` on the integrated heatmap from the test frame:
 
 ![alt text][image6]
 
-Here are the resulting bounding boxes drawn onto a frame in the series:
+Here are the resulting bounding boxes drawn onto the same frame:
 
 ![alt text][image7]
 

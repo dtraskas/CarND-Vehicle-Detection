@@ -227,9 +227,6 @@ class VehicleClassifier:
         all_windows = []
                 
         X_start_stop =[[None,None],[None,None],[None,None],[None,None]]
-        #XY_window = [(240, 240), (180, 180), (120, 120), (70, 70)]                
-        #Y_start_stop =[[380, 500], [380, 470], [395, 455], [405, 440]]    
-        
         XY_window = [(128, 128), (96, 96), (80, 80)]                
         Y_start_stop =[[450, 600], [400, 500], [400, 500]]    
                 
