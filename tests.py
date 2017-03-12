@@ -82,7 +82,7 @@ def gen_three():
     image = image.astype(np.float32)/255            
     detected_windows, all_windows = clf.search_multiple_scales(image)
     
-    phase = 1
+    phase = 5
     fig = plt.figure()    
     if phase == 1:
         for window in all_windows:

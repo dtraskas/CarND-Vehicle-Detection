@@ -16,7 +16,7 @@ In order to implement a vehicle detection pipeline from a video stream the follo
 [image3]: ./output_images/sliding_windows.png
 [image4]: ./output_images/sliding_window.png
 [image5]: ./output_images/bboxes_and_heat.png
-[image6]: ./output_images/labels_map.png
+[image6]: ./output_images/labels.png
 [image7]: ./output_images/output_bboxes.png
 [video1]: ./project_output.mp4
 
