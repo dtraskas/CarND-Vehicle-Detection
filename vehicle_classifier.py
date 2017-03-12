@@ -89,8 +89,9 @@ class VehicleClassifier:
         else: feature_image = np.copy(image)      
         
         spatial_features = self.bin_spatial(feature_image, size=self.spatial_size)
+        
         hist_features = self.color_hist(feature_image)
-
+        
         feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)               
         if self.hog_channel == 'ALL':
             hog_features = []
@@ -99,7 +100,7 @@ class VehicleClassifier:
             hog_features = np.ravel(hog_features)        
         else:            
             hog_features = self.get_hog_features(feature_image[:,:,self.hog_channel], vis=False, feature_vec=True)
-                        
+        
         return np.concatenate((spatial_features, hist_features, hog_features))
             
     # Extracts features from a list of images
@@ -122,7 +123,7 @@ class VehicleClassifier:
         notveh_features = self.extract_features(non_vehicles)
         
         # Create an array stack of feature vectors and fit a per-column scaler
-        X = np.vstack((veh_features, notveh_features)).astype(np.float64)                        
+        X = np.vstack((veh_features, notveh_features)).astype(np.float64)          
         X_scaler = StandardScaler().fit(X)
         scaled_X = X_scaler.transform(X)        
         # Save the scaler when video processing
@@ -156,8 +157,7 @@ class VehicleClassifier:
         # Split up data into randomized training and test sets        
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=split_size, random_state=np.random.randint(0, 100))
         X_train, y_train = shuffle(X_train, y_train)
-        print('Training classifier...')
-
+        print('Training classifier...')        
         # Check the training time for the SVC
         t=time.time()
         self.svm.fit(X_train, y_train)
@@ -223,21 +223,25 @@ class VehicleClassifier:
 
     # Searches windows across multiple scales 
     def search_multiple_scales(self, image):        
-        hot_windows = []
+        detected_windows = []
         all_windows = []
                 
         X_start_stop =[[None,None],[None,None],[None,None],[None,None]]
-        XY_window = [(240, 240), (180, 180), (120, 120), (70, 70)]                
-        Y_start_stop =[[380, 500], [380, 470], [395, 455], [405, 440]]    
+        #XY_window = [(240, 240), (180, 180), (120, 120), (70, 70)]                
+        #Y_start_stop =[[380, 500], [380, 470], [395, 455], [405, 440]]    
         
-        for i in range(len(Y_start_stop)):
+        XY_window = [(128, 128), (96, 96), (80, 80)]                
+        Y_start_stop =[[450, 600], [400, 500], [400, 500]]    
+                
+        count = len(Y_start_stop)
+        for i in range(count):
             windows = self.slide_window(image, x_start_stop=X_start_stop[i], y_start_stop=Y_start_stop[i], 
                                                xy_window=XY_window[i], xy_overlap=(0.75, 0.75))
             
             all_windows += [windows]                    
-            hot_windows +=  self.search_windows(image, windows)
+            detected_windows +=  self.search_windows(image, windows)
 
-        return hot_windows,all_windows
+        return detected_windows,all_windows
 
     # Create a heatmap from the specified boxes
     def add_heatmap(self, heatmap, bbox_list):

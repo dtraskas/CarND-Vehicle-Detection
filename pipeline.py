@@ -15,14 +15,24 @@ from moviepy.editor import VideoFileClip
 from scipy.ndimage.measurements import label
 from vehicle_classifier import VehicleClassifier
 
+heatmap_history = []
+
 # Process just a single image
 def process_image(image):
+    global heatmap_history
+
     draw_image = np.copy(image)  
     image = image.astype(np.float32)/255      
-    hot_windows, all_windows = globalClf.search_multiple_scales(image)
+    detected_windows,_ = globalClf.search_multiple_scales(image)
+
     heatmap = np.zeros_like(image[:,:,0]).astype(np.float)
-    heatmap = globalClf.add_heatmap(heatmap, hot_windows)
-    heatmap = globalClf.apply_threshold(heatmap,1)
+    heatmap = globalClf.add_heatmap(heatmap, detected_windows)
+
+    heatmap_history.append(heatmap)
+    heatmap_history = heatmap_history[-10:]
+    heatmap = np.vstack(heatmap_history)
+
+    heatmap = globalClf.apply_threshold(heatmap,2)
     labels = label(heatmap)
     final_image = globalClf.draw_labeled_bboxes(draw_image, labels)
     
@@ -36,7 +46,7 @@ def process_video(inp_fname, out_fname):
 
 if __name__ == '__main__':
     
-    cspace='RGB'
+    cspace='YUV'
     spatial_size=(16,16)
     hist_bins=(32,32)
     orient = 9
@@ -45,7 +55,7 @@ if __name__ == '__main__':
     hog_channel = 'ALL'
     
     # Specify here the processing phase
-    phase = 'test'
+    phase = 'generate'
 
     if phase == 'train':
         
@@ -67,10 +77,10 @@ if __name__ == '__main__':
         image = mpimg.imread('test_images/test1.jpg')
         image = image.astype(np.float32)/255        
         # Search all the scales and generate a heatmap
-        hot_windows, all_windows = clf.search_multiple_scales(image)
+        detected_windows, all_windows = clf.search_multiple_scales(image)
         heatmap = np.zeros_like(image[:,:,0]).astype(np.float)
-        heatmap = clf.add_heatmap(heatmap, hot_windows)
-        heatmap = clf.apply_threshold(heatmap,1)
+        heatmap = clf.add_heatmap(heatmap, detected_windows)
+        heatmap = clf.apply_threshold(heatmap,2)
         final_heatmap = np.clip(heatmap, 0, 255)
 
         labels = label(final_heatmap)
@@ -79,8 +89,14 @@ if __name__ == '__main__':
         plt.imshow(final_image)
         plt.show()
 
-    if phase == 'generate':
+    if phase == 'test_generate':
         globalClf = VehicleClassifier(True, cspace, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel)
+        print("Started processing test video...")
+        process_video('test_video.mp4', 'test_output.mp4')
+        print("Completed test video processing!")
+
+    if phase == 'generate':
+        globalClf = VehicleClassifier(True, cspace, spatial_size, hist_bins, orient, pix_per_cell, cell_per_block, hog_channel)         
         print("Started processing video...")
         process_video('project_video.mp4', 'project_output.mp4')
         print("Completed video processing!")
