@@ -13,12 +13,50 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from moviepy.editor import VideoFileClip
 from scipy.ndimage.measurements import label
-from vehicle_classifier import VehicleClassifier
 
+from vehicle_classifier import VehicleClassifier
+from transformer import Transformer 
+from lanefinder import LaneFinder
+
+# Definition of global Transformer and global LaneFinder used in the process image function
+globalTransformer = Transformer()
+globalLaneFinder = LaneFinder()
+left_fit_buffer = None
+right_fit_buffer = None
 heatmap_history = []
+
+'''
+    global left_fit_buffer
+    global right_fit_buffer
+
+    undistorted = globalTransformer.undistort(image)
+    warped = globalTransformer.warp(undistorted)
+    masked = globalTransformer.color_grad_threshold(warped, sobel_kernel=9, thresh_x=(20, 100),thresh_c=(120, 255))
+    left, right = globalLaneFinder.find_peaks(masked)
+    left_fit, right_fit, leftx, lefty, rightx, righty = globalLaneFinder.sliding_window(masked, left, right)
+    # take an average of previous frames to smooth the detection
+    if left_fit_buffer is None:
+        left_fit_buffer = np.array([left_fit])
+
+    if right_fit_buffer is None:
+        right_fit_buffer = np.array([right_fit])
+        
+    left_fit_buffer = np.append(left_fit_buffer, [left_fit], axis=0)[-20:]
+    right_fit_buffer = np.append(right_fit_buffer, [right_fit], axis=0)[-20:]
+
+    left_fit = np.mean(left_fit_buffer, axis=0)
+    right_fit = np.mean(right_fit_buffer, axis=0)
+
+    final_result = globalLaneFinder.get_lane(undistorted, masked, left_fit, right_fit)
+    left_r, right_r, offset = globalLaneFinder.get_curvature(masked, left_fit, right_fit)    
+    final_result = globalLaneFinder.add_stats(final_result, left_r, right_r, offset)
+'''
 
 # Process just a single image
 def process_image(image):
+    
+    global left_fit_buffer
+    global right_fit_buffer
     global heatmap_history
 
     draw_image = np.copy(image)  
@@ -36,10 +74,41 @@ def process_image(image):
     labels = label(heatmap)
     final_image = globalClf.draw_labeled_bboxes(draw_image, labels)
     
-    return final_image
+    undistorted = globalTransformer.undistort(final_image)
+    warped = globalTransformer.warp(undistorted)
+    masked = globalTransformer.color_grad_threshold(warped, sobel_kernel=9, thresh_x=(20, 100),thresh_c=(120, 255))
+    left, right = globalLaneFinder.find_peaks(masked)
+    left_fit, right_fit, leftx, lefty, rightx, righty = globalLaneFinder.sliding_window(masked, left, right)
+    # take an average of previous frames to smooth the detection
+    if left_fit_buffer is None:
+        left_fit_buffer = np.array([left_fit])
+
+    if right_fit_buffer is None:
+        right_fit_buffer = np.array([right_fit])
+        
+    left_fit_buffer = np.append(left_fit_buffer, [left_fit], axis=0)[-20:]
+    right_fit_buffer = np.append(right_fit_buffer, [right_fit], axis=0)[-20:]
+
+    left_fit = np.mean(left_fit_buffer, axis=0)
+    right_fit = np.mean(right_fit_buffer, axis=0)
+
+    final_result = globalLaneFinder.get_lane(undistorted, masked, left_fit, right_fit)
+    left_r, right_r, offset = globalLaneFinder.get_curvature(masked, left_fit, right_fit)    
+    final_result = globalLaneFinder.add_stats(final_result, left_r, right_r, offset)
+
+    return final_result
 
 # Process the entire video
-def process_video(inp_fname, out_fname):        
+def process_video(inp_fname, out_fname):
+
+    mtx = np.loadtxt("lane model/mtx.dat")
+    dist = np.loadtxt("lane model/dist.dat")
+    M = np.loadtxt("lane model/matrix.dat")
+    Minv = np.loadtxt("lane model/matrix_inv.dat")
+
+    globalTransformer.initialise(mtx, dist, M, Minv)
+    globalLaneFinder.initialise(Minv)
+
     clip = VideoFileClip(inp_fname)    
     output_clip = clip.fl_image(process_image)
     output_clip.write_videofile(out_fname, audio=False)
