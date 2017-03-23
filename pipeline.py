@@ -124,7 +124,7 @@ if __name__ == '__main__':
     hog_channel = 'ALL'
     
     # Specify here the processing phase
-    phase = 'generate'
+    phase = 'test'
 
     if phase == 'train':
         
